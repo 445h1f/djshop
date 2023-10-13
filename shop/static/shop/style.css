@@ -1,0 +1,22 @@
+.card {
+  border: 1px solid #ccc; /* Add borders for visualization */
+  padding: 10px; /* Add padding to the cards */
+}
+.card-img {
+  height: 200px; /* Set the fixed height for the image section */
+  overflow: hidden;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.card-content {
+  height: 100px; /* Set the fixed height for the content section */
+}
+
+.card-title {
+  font-weight: bold;
+}
+
+.card-price {
+  font-weight: 600;
+}
