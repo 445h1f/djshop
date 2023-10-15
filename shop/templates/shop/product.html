@@ -1,0 +1,58 @@
+{% extends 'shop/base.html' %} {% load static %} {% block body %}
+<div class="container">
+  <div class="row">
+    <!-- Product Image -->
+    <div class="col-md-6">
+      <div
+        class="d-flex align-items-center justify-content-center"
+        style="height: 75vh"
+      >
+        {% if product.image|length > 0%}
+        <img
+          src="{{ product.image }}"
+          alt="Product Image"
+          id="image-{{product.id}}"
+          class="img-fluid"
+          style="max-height: 100%; max-width: 100%"
+        />
+        {% else %}
+        <img
+          src="{% static 'shop/images/no_img.png' %}"
+          alt="Product Image"
+          id="image-{{product.id}}"
+          class="img-fluid"
+          style="max-height: 100%; max-width: 100%"
+        />
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Product Details -->
+    <div class="col-md-6">
+      <h2 id="name-{{product.id}}">{{ product.title }}</h2>
+      <h2 class="text-primary" id="price-{{product.id}}">
+        ₹{{ product.discount_price }}
+      </h2>
+      <p><strike>₹{{ product.price }}</strike></p>
+
+      <!-- Buttons -->
+      <div class="mt-4">
+        <a
+          href="/product/{{ product.id }}"
+          class="btn btn-light border border-dark-subtle"
+          >Buy Now</a
+        >
+        <button id="{{ product.id }}" class="add-to-cart-btn btn btn-dark">
+          Add to Cart
+        </button>
+      </div>
+
+      <!-- Description -->
+      <div class="mt-4">
+        <h4>Description</h4>
+        <p>{{ product.description }}</p>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,19 +1,20 @@
-{% extends 'shop/base.html' %}
-{% load static %}
-{% block body %}
+{% extends 'shop/base.html' %} {% load static %} {% block body %}
 <div class="container">
-
   {# search field #}
   <div class="row">
     <div class="col-md-12">
       <form class="card card-sm">
         <div class="card-body row no-gutters-align-items-center">
           <div class="col">
-            <input class="form-control form-control-borderless" type="text" name="prod_search"
-              placeholder="Search for Product">
+            <input
+              class="form-control form-control-borderless"
+              type="text"
+              name="prod_search"
+              placeholder="Search for Product"
+            />
           </div>
           <div class="col-auto">
-            <button class="btn btn-success" type="submit">Search</button>
+            <button class="btn btn-dark" type="submit">Search</button>
           </div>
         </div>
       </form>
@@ -23,19 +24,46 @@
   <div class="row">
     {% for product in product_objects %}
     <div class="col-md-3 mb-3 mt-3">
-      <div class="card">
-        <div class="card-img">
+      <div class="card item-card">
+        <div class="card-img item-card-img">
           {% if product.image|length > 0 %}
-          <img src="{{ product.image }}" alt="" class="img-fluid" style="object-fit: cover; height: 100%;">
+          <img
+            src="{% static 'shop/images/no_img.png' %}"
+            alt=""
+            id="image-{{product.id}}"
+            class="img-fluid"
+            style="object-fit: cover; height: 100%"
+          />
           {% else %}
-          <img src="{% static 'shop/images/no_img.png' %}" alt="" class="img-fluid" style="object-fit: cover; height: 100%;">
+          <img
+            src="{% static 'shop/images/no_img.png' %}"
+            alt=""
+            id="image-{{product.id}}"
+            class="img-fluid"
+            style="object-fit: cover; height: 100%"
+          />
           {% endif %}
         </div>
-        <div class="card-content mt-5">
-          <h5 class="card-title">{{ product.title|truncatechars:30 }}</h5>
-          <p class="card-text"><span class="card-price">₹{{ product.discount_price }}</span>
+        <div class="card-content item-card-content mt-5">
+          <h5 id="name-{{product.id}}" class="card-title item-card-title">
+            {{ product.title|truncatechars:30 }}
+          </h5>
+          <p class="card-text">
+            <span id="price-{{product.id}}" class="item-card-price"
+              >₹{{ product.discount_price }}</span
+            >
             <strike>{{product.price}}</strike>
           </p>
+        </div>
+        <div class="card-buttons">
+          <a
+            href="/product/{{ product.id }}"
+            class="btn btn-light border border-dark-subtle"
+            >View</a
+          >
+          <a id="{{ product.id }}" href="#" class="add-to-cart-btn btn btn-dark"
+            >Add To Cart</a
+          >
         </div>
       </div>
     </div>
@@ -43,6 +71,7 @@
   </div>
 </div>
 
+{% if product_objects.has_previous or product_objects.has_next %}
 <nav aria-label="Page navigation">
   <ul class="pagination justify-content-center">
     {% if product_objects.has_previous %}
@@ -70,5 +99,6 @@
     {% endif %}
   </ul>
 </nav>
+{% endif %}
 
 {% endblock %}
