@@ -17,68 +17,20 @@
   <div class="tab-pane fade show active" id="nav-items" role="tabpanel" aria-labelledby="nav-item-tab" tabindex="0">
 
 
-    <ul class="list-group mb-3">
-      {% for product in cart_data %}
-      <li class="list-group-item">
-        <div class="row">
-          <div class="col-4">
 
-              {% if product.image|length > 0%}
-              <img src="{% static 'shop/images/no_img.png' %}" class="img-thumbnail p-2" style="max-width: 100%; max-height: 100%;" alt="Item Image">
-        {% else %}
-        <img src="{% static 'shop/images/no_img.png' %}" class="img-thumbnail p-2" style="max-width: 100%; max-height: 100%;" alt="Item Image">
-        {% endif %}
-
-          </div>
-          <div class="col-8">
-            <h5 id="name-{{product.id}}"class="card-title item-card-title">{{ product.title|truncatechars:100 }}</h5>
-        <p class="card-text"><span id="price-{{product.id}}" class="item-card-price">₹ {{ product.discount_price }}</span>
-          <strike>{{ product.price}}</strike>
-        </p>
-            <p class="card-text">Quantity: {{ product.quantity }}</p>
-          </div>
-        </div>
-      </li>
-      {% endfor %}
-    </ul>
   </div>
   </div>
   <div class="tab-pane fade" id="nav-payment" role="tabpanel" aria-labelledby="nav-payment-tab" tabindex="0">
     <div class="card">
       <div class="row g-0">
 
-        <div class="col-md-12">
-          <div class="card-body">
-            <h5 class="card-title">Order Info:</h5>
-
-            <div class="table-responsive">
-              <table class="table table-striped">
-                <tbody>
-                  <tr>
-                    <th>Total Price: </th>
-                    <td>₹ {{ order_info.total_price }}</td>
-                  </tr>
-                  <tr>
-                    <th>Savings: </th>
-                    <td>₹ {{ order_info.savings }}</td>
-                  </tr>
-                  <tr>
-                    <th>Final Price: </th>
-                    <td>₹ {{ order_info.total_discount_price }}</td>
-                  </tr>
-                  <tr>
-                    <th>Total Items: </th>
-                    <td>{{ order_info.total_quantity }}</td>
-                  </tr>
-                  <!-- Add more key-value pairs here -->
-                </tbody>
-              </table>
-            </div>
+        <div id="order-info" class="col-md-12">
 
 
-          </div>
+
         </div>
       </div>
+
     </div>
 
   </div>
@@ -86,5 +38,128 @@
 </div>
 </div>
 </div>
-
 {% endblock %}
+
+
+{% block script %}
+<script>
+
+
+  function displayCartItems() {
+    var cartData = getCart();
+    var itemsContent = document.getElementById("nav-items");
+    var orderContent = document.getElementById("order-info");
+    var totalPrice = 0;
+    var totalDiscountPrice = 0;
+    var totalQuantity = 0;
+
+    var displayData = "";
+    var orderData = "";
+
+    if (Object.keys(cartData).length > 0) {
+      displayData += `<ul class="list-group mb-3">`;
+        for (var id in cartData) {
+          var item = cartData[id];
+          totalPrice += item.price;
+          totalQuantity += item.quantity;
+        totalDiscountPrice = item.discountPrice * item.quantity;
+        displayData += `<li class="list-group-item">
+          <div class="row">
+            <div class="col-4">
+              <img src="${item.image}" class="img-thumbnail p-2" style="max-width: 100%; max-height: 100%;" alt="Item Image">
+            </div>
+            <div class="col-8">
+              <h5 id="name-${id}"class="card-title item-card-title">${item.title}</h5>
+              <p class="card-text"><span id="dis-price-${id}" class="item-card-price">₹ ${item.discountPrice}</span>
+                <strike id="price-${id}">${item.price}</strike>
+              </p>
+              <p class="card-text">Quantity: ${item.quantity}</p>
+            </div>
+          </div>
+        </li>`
+      }
+      displayData += `</ul>`
+      orderData += `<div class="card-body">
+        <h5 class="card-title">Order Info:</h5>
+
+        <div class="table-responsive">
+          <table class="table table-striped">
+            <tbody>
+              <tr>
+                <th>Total Price: </th>
+                <td>₹ ${totalPrice}</td>
+              </tr>
+              <tr>
+                <th>Savings: </th>
+                <td>₹ ${totalPrice - totalDiscountPrice}</td>
+              </tr>
+              <tr>
+                <th>Final Price: </th>
+                <td>₹ ${totalDiscountPrice}</td>
+              </tr>
+              <tr>
+                <th>Total Items: </th>
+                <td>${totalQuantity}</td>
+              </tr>
+              <!-- Add more key-value pairs here -->
+            </tbody>
+          </table>
+        </div>
+
+
+      </div>`;
+
+      orderData += `<div id="order-form" class="card-body">
+        <h5 class="card-title">Shipping Details:</h5>
+
+        <form method="POST" >
+          {% csrf_token %}
+          <input type="hidden" id="items" name="items">
+          <div class="form-row">
+            <div class="form-group col-md-6">
+              <label for="inputEmail4">Name</label>
+              <input id="name" name="name" type="text" class="form-control" id="inputEmail4" placeholder="John" required>
+            </div>
+            <div class="form-group col-md-6">
+              <label for="inputPassword4">Email</label>
+              <input id="email" name="email" type="email" class="form-control" id="inputPassword4" placeholder="john@john.com" required>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="inputAddress">Address</label>
+            <input id="address" name="address" type="text" class="form-control" id="inputAddress" placeholder="1234 Main St" required>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group col-md-6">
+                <label for="inputCity">City</label>
+                <input id="city" name="city" type="text" class="form-control" id="inputCity" required>
+              </div>
+              <div class="form-group col-md-4">
+                <label for="inputState">State</label>
+                <input id="state" name="state" type="text" class="form-control" id="inputCity" required>
+
+              </div>
+              <div class="form-group col-md-2">
+                <label for="inputZip">Zip</label>
+                <input id="zipcode" name="zipcode" type="number" class="form-control" id="inputZip" required>
+              </div>
+            </div>
+
+
+            <button type="submit" class="btn btn-warning mt-2">Place Order</button>
+          </form>
+        </div>`;
+      } else {
+        displayData += "<p>Your cart is empty.</p>";
+        orderData += "<p>Your cart is empty.</p>";
+      }
+
+      itemsContent.innerHTML = displayData;
+      orderContent.innerHTML = orderData;
+      $('#items').val(JSON.stringify(cartData));
+      ;
+    }
+    displayCartItems();
+  </script>
+  {% endblock %}

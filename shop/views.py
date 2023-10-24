@@ -1,10 +1,14 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.core.paginator import Paginator
-from .models import Product
+from .models import Product, Order
+from django.urls import reverse
+from django.contrib import messages
+import json
 
 
 # Create your views here.
 def index(request):
+    context = {}
 
     # for search result
     prod_search = request.GET.get('prod_search')
@@ -14,11 +18,15 @@ def index(request):
         # normal all products display
         all_products = Product.objects.all()
 
+    if request.GET.get('order_success') == 'true':
+        context['clear_cart'] = True
+
     paginator = Paginator(all_products, 16)
     page = request.GET.get('page')
     all_products = paginator.get_page(page)
 
-    return render(request, template_name='shop/index.html',context={"product_objects" : all_products})
+    context["product_objects"] = all_products
+    return render(request, template_name='shop/index.html',context=context)
 
 
 # detail view of product
@@ -26,52 +34,46 @@ def detail(request, prod_id):
     try:
         product = Product.objects.get(pk=prod_id)
     except:
-        return render(request, 'shop/404.html')
+        messages.error(request, "Product not found!")
+        return redirect('index')
     return render(request, 'shop/product.html', context={"product":product})
 
 
-# checkout page
+
 def checkout(request):
-    cart_data_raw = request.POST.get('cart_data')
+    if request.method == "POST":
+        fields = ["name", "email", "address", "city", "state", "zipcode"]
 
-    if cart_data_raw:
-        if cart_data_raw[-1] == ',':
-            cart_data_raw = cart_data_raw[:-1]
-        # filtering data
-        items_data = cart_data_raw.split(',')
+        name = request.POST.get("name")
+        email = request.POST.get("email")
+        address = request.POST.get("address")
+        city = request.POST.get("city")
+        state = request.POST.get("state")
+        zipcode = request.POST.get("zipcode")
+        items = request.POST.get("items")
 
-        cart_data = []
+        try:
+            items = json.loads(items)
 
-        total_price = 0
-        total_discount_price = 0
-        total_quantity = 0
+            total_value = 0
 
-        for item in items_data:
-            item = item.split(':')
-            item_id = int(item[0].strip())
-            item_quantity = int(item[1].strip());
-            print(item_id, item_quantity)
-            prod = Product.objects.get(pk=item_id)
-            product_data = {
-                "id" : prod.pk,
-                "title" : prod.title,
-                "price": prod.price,
-                "discount_price" : prod.discount_price,
-                "image" : prod.image,
-                "quantity": item_quantity,
-            }
-            total_price += prod.price
-            total_discount_price += prod.discount_price
+            for item_id in items:
+                item = Product.objects.get(pk=int(item_id))
+                total_value += item.discount_price
 
-            total_quantity += item_quantity
-            cart_data.append(product_data)
+            if total_value <= 0:
+                raise Exception("invalid order data")
 
-        order_info = {
-            "total_discount_price" : total_discount_price,
-            "total_price" : total_price,
-            "savings" : total_price - total_discount_price,
-            "total_quantity" : total_quantity
-        }
-        return render(request, 'shop/checkout.html', context={"cart_data" : cart_data, "order_info": order_info})
+            order = Order(name=name, email=email, address=address, city=city, state=state, zipcode=zipcode, items=items, total_value=total_value)
+            order.save()
+
+            messages.success(request, f'Order placed successfully successfully.')
+
+            url = reverse('index') + f'?order_success=true'
+            return redirect(url)
+        except:
+            messages.error(request, "Invalid order data. Try ordering again. If issue persists, clear your cart and add items again.")
+            return redirect('index')
 
     return render(request, 'shop/checkout.html')
+
